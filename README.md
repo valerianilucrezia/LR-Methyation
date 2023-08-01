@@ -10,6 +10,7 @@ Required libraries:
 *  `optparse `
 *  `dplyr `
 *  `patchwork `
+*   `ggpubr `
 
 ## How to run
 ### General analysis
