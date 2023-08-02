@@ -3,10 +3,9 @@ library(dplyr)
 library(data.table)
 library(patchwork)
 library(ggplot2)
-options(bitmapType='cairo')
-
 
 setwd('./')
+options(bitmapType='cairo')
 
 # Define #### 
 my_theme <- theme_bw() + theme(
@@ -19,23 +18,24 @@ my_theme <- theme_bw() + theme(
 chrs <- paste0('chr', 1:22)
 
 option_list <- list(
-  make_option(c("-nano", "--nanopore"), type="character", default=NULL,
+  make_option(c("-n", "--nanopore"), type="character", default=NULL,
               help = "nanopore file", metavar="character"),
-  make_option(c("-epic", "--epic"), type="character", default=NULL,
+  make_option(c("-e", "--epic"), type="character", default=NULL,
               help = "epic file", metavar="character"),
-  make_option(c("-out", "--output"), type="character", default=NULL,
+  make_option(c("-o", "--output"), type="character", default=NULL,
               help = "output directory", metavar="character"), 
-  make_option(c("-sample", "--sample"), type="character", default=NULL,
+  make_option(c("-s", "--sample"), type="character", default=NULL,
               help = "sample name", metavar="character"));
 
 opt_parser <- OptionParser(option_list = option_list);
 opt <- parse_args(opt_parser);
 
-out_dir <- file.path(opt$out, opt$sample)
-dir.create(out_dir, showWarnings = FALSE)
+out_dir <- file.path(opt$output, opt$sample)
+dir.create(out_dir)
 
-f_nanopore <- opt$nano
+f_nanopore <- opt$nanopore
 f_epic <- opt$epic
+
 
 # Nanopore analysis ####
 np <- fread(f_nanopore)
@@ -45,29 +45,37 @@ np <- np %>% dplyr::filter(chrom %in% chrs) %>%
   dplyr::mutate(nread = mod+canon) %>% 
   dplyr::select(-name, -freq, -filt, -tstart, -tend, -color)
 
+
 color_strand <- list(plus = 'deepskyblue4',
                      minus = 'coral3',
                      mean = 'darkgoldenrod')
 l_strand <- list(minus = '-', plus = '+')
 
+
+plots <- list()
+i <- 1
 pl_strand <- list()
 for (st in c('minus', 'plus')){
   
   df <- np %>% filter(strand == l_strand[[st]])  
-  pl <- df %>% ggplot() +
-    geom_histogram(aes(x = nread), fill = color_strand[[st]], alpha = 0.7, bins = 100) +
+  pl1 <- df %>% 
+    ggplot() +
+    geom_histogram(aes(x = nread), fill = color_strand[[st]], alpha = 0.8, bins = 100) +
     xlab('Coverage') + 
     xlim(0, 200) +
-    my_theme +
+    my_theme 
     
-  df %>% 
+  pl2 <- df %>% 
     ggplot() +
-    geom_histogram(aes(x = beta), fill = color_strand[[st]], alpha = 0.7, bins = 100) +
+    geom_histogram(aes(x = beta), fill = color_strand[[st]], alpha = 0.8, bins = 100) +
     xlab(paste0('Beta', l_strand[[st]])) + 
     xlim(-0.01,1.01) +
     my_theme 
   
-  pl_strand[[st]] <- pl
+  pl_strand[[i]] <- pl1
+  i <- i+1
+  pl_strand[[i]] <- pl2
+  i <- i+1
 }
 
 np_cov <- np[1:nrow(np)-1] %>% 
@@ -83,24 +91,32 @@ np_cov <- np[1:nrow(np)-1] %>%
   mutate(cov =(mod+mod_minus+canon+canon_minus)) %>% 
   select(-coverage, -strand, -coverage_minus)
 
-pl <- np_cov %>% 
+pl1 <- np_cov %>% 
     ggplot() +
-    geom_histogram(aes(x = cov), fill = color_strand$mean, alpha = 0.7, bins = 100) +
+    geom_histogram(aes(x = cov), fill = color_strand$mean, alpha = 0.8, bins = 200) +
     xlab('Coverage') + 
     xlim(0, 200) +
-    my_theme +
+    my_theme
   
-  np_cov %>% 
+pl2 <- np_cov %>% 
     ggplot() +
-    geom_histogram(aes(x = beta), fill = color_strand$mean, alpha = 0.7, bins = 100) +
+    geom_histogram(aes(x = beta), fill = color_strand$mean, alpha = 0.8, bins = 200) +
     xlab('Beta') + 
     xlim(-0.01,1.01) +
     my_theme 
 
-pl_strand[['cov']] <- pl
+pl_strand[[i]] <- pl1
+pl_strand[[i+1]] <- pl2
+pl_strand[[1]] + pl_strand[[2]] +
+  pl_strand[[3]] + pl_strand[[4]] +
+  pl_strand[[5]] + pl_strand[[6]] +
+  plot_layout(nrow=3, ncol=2)
+ggsave(paste0(out_dir, '/nanopore_', opt$sample, '.pdf'), dpi = 300, height=7, width=10, units='in')
 
 # EPIC analysis ####
-manifest <- '/orfeo/LTS/LADE/LT_storage/lvaleriani/methylation/prova_GEL/data/manifest_epic.RDS'
+plots <- list()
+
+manifest <- '../data/manifest_epic.RDS'
 manifest_epic <- readRDS(manifest)
 
 epic <- fread(f_epic, header = FALSE, skip = 1)
@@ -118,22 +134,33 @@ np_cov <- np_cov %>%   # takes time
 by <- join_by(id)
 df <- left_join(epic, np_cov, by)
 df <- df %>% filter(!is.na(beta_epic)) %>% filter(!(is.na(beta_np)))
+saveRDS(df, paste0(out_dir,'/', opt$sample, '.RDS'))
 
-comp <- df %>% 
+plots[['density']] <- df %>% 
   tidyr::pivot_longer(cols = c(beta_epic, beta_np)) %>% 
   ggplot() +
   geom_density(aes(value, color = name)) +
   scale_color_manual(values = c('turquoise4', 'darkgoldenrod'), 
-                    labels = c('EPIC', 'Nanopore')) + 
+                     labels = c('EPIC', 'Nanopore'), 
+                     name = '') + 
   my_theme + 
   xlim(-0.05, 1.05) + 
   theme(legend.position = 'bottom')
+
+
+plots[['coverage']] <- df %>% 
+  ggplot() +
+  geom_histogram(aes(x = cov), binwidth = 2, fill = 'darkgoldenrod', alpha = .7) +
+  xlab('Coverage') +
+  xlim(0, 150) +
+  my_theme
+
 
 corr <- c()
 nprobes <- c()
 diff_mean <- c()
 diff_median <- c()
-for (cv in seq(1, 150)){
+for (cv in seq(1, 120)){
   df1 <- df %>% filter(cov <= cv)
   df2 <- df %>% filter(cov >= cv)
   
@@ -144,13 +171,14 @@ for (cv in seq(1, 150)){
   diff_median <- c(diff_median, median(df1$beta_epic - df1$beta_np))
 }
 
-cov_cor <- tibble(cov = seq(1, 150), 
+cov_cor <- tibble(cov = seq(1, 120), 
                   corr = corr, 
                   nprobes = nprobes, 
                   diff_mean = diff_mean,
                   diff_median = diff_median)
 
-corr1 <- cov_cor %>% ggplot() +
+plots[['corr1']] <- cov_cor %>% 
+  ggplot() +
   geom_point(aes(x = cov, y = corr), color = 'lightsalmon3') +
   geom_hline(aes(yintercept = cor(df$beta_epic, df$beta_np)), color = 'lightsalmon') +
   geom_vline(aes(xintercept = mean(df$cov)), color = 'lightsalmon4') +
@@ -160,16 +188,26 @@ corr1 <- cov_cor %>% ggplot() +
   my_theme
 
 
-corr2 <- cov_cor %>% ggplot() +
+plots[['corr2']]  <- cov_cor %>% 
+  ggplot() +
   geom_point(aes(x = cov, y = nprobes), color = 'lightsalmon3') +
   geom_vline(aes(xintercept = mean(df$cov)), color = 'lightsalmon4') +
   ylab('Nprobes') +
   xlab('Coverage') +
-  xlim(0,150) +
+  xlim(0,120) +
   my_theme
 
 
-scatter_en <- df %>%
+df <- df %>% filter(cov > 20)
+
+plots[['beta_diff']]  <- df %>% ggplot() +
+  geom_histogram(aes(x = beta_epic - beta_np), fill = 'lightsalmon3', alpha = 0.8, binwidth = 0.01) +
+  geom_vline(aes(xintercept = mean( beta_epic - beta_np)), color = 'lightsalmon4') +
+  xlab('EPIC - Nanopore') +
+  my_theme
+
+
+plots[['scatter_en']] <- df %>%
   ggplot() +
   geom_bin2d(aes(x = beta_epic, y = beta_np), bins = 150) +
   scale_fill_gradientn(limits=c(1, 2500), colors=c("lightyellow2","darkgoldenrod1", 'darkgoldenrod'),
@@ -179,11 +217,12 @@ scatter_en <- df %>%
   
   xlab('EPIC') + 
   ylab('Nanopore') + 
+  ggtitle(round(cor(df$beta_epic, df$beta_np),3)) +
   my_theme +
   theme(legend.position = 'none')
 
 
-scatter_plus <- df %>%
+plots[['scatter_plus']] <- df %>%
   ggplot() +
   geom_bin2d(aes(x = beta_epic, y = beta_plus), bins = 150) +
   scale_fill_gradientn(limits=c(1, 2500), colors=c("powderblue","deepskyblue3", 'deepskyblue4'),
@@ -196,45 +235,65 @@ scatter_plus <- df %>%
   theme(legend.position = 'none')
 
 
-scatter_minus <- df %>% 
+plots[['scatter_minus']] <- df %>% 
   ggplot() +
   geom_bin2d(aes(x = beta_epic, y = beta_minus), bins = 150) +
-  scale_fill_gradientn(limits=c(1, 2500), colors=c("lavenderblush2","coral1", 'coral3'),
+  scale_fill_gradientn(limits=c(1, 2500), 
+                       colors=c("lavenderblush2","coral1", 'coral3'),
                        values = scales::rescale(c(1,1000,25000))) +
   geom_abline(intercept = 0, color = 'ivory4', linetype='twodash') +
   geom_smooth(aes(x = beta_epic, y = beta_minus), method = "lm", color = 'ivory4', alpha = .2) +
-  
   xlab('EPIC') + 
   ylab('Beta -') + 
   my_theme +
   theme(legend.position = 'none')
 
 
-coverage <- df %>% 
+plots[['coverage']] <- df %>% 
   ggplot() +
-  geom_histogram(aes(x = cov), binwidth = 0.1, fill = 'darkgoldenrod', alpha = .7) +
+  geom_histogram(aes(x = cov), binwidth = 0.5, fill = 'darkgoldenrod', alpha = .7) +
   xlab('Coverage') +
   xlim(0, 150) +
   my_theme
 
-scatter_pm <- df %>% ggplot() +
+plots[['scatter_bias']] <- df %>% 
+  ggplot() +
   geom_bin2d(aes(x = beta_plus, y = beta_minus), bins = 150) +
   scale_fill_gradientn(limits = c(1, 2500),
-                       colors = c("thistle3","mediumpurple3", 'mediumpurple4'),
+                       colors = c("thistle3", "mediumpurple3", 'mediumpurple4'),
                        values = scales::rescale(c(1,100,2500))) +
   xlab('Beta+') + 
   ylab('Beta-') + 
-  my_theme 
+  my_theme +
+  theme(legend.position = 'none')
 
-dist_pm <- df %>% 
+plots[['dist_bias']] <- df %>% 
   ggplot() +
-  geom_histogram(aes(x = beta_plus - beta_minus), binwidth = 0.1) +
+  geom_histogram(aes(x = beta_plus - beta_minus), binwidth = 0.05, fill = 'mediumpurple4', alpha = 0.7) +
   xlab('Beta+ - Beta-') +
   xlim(-1.01, 1.01) +
-  my_theme
+  my_theme +
+  theme(legend.position = 'none')
 
-saveRDS(df, paste0(opt$out_dir, opt$sample, '.RDS'))
-  
+layout <- "ABF
+           DCE
+           GH#
+           IL#
+          "
+
+plots$density +
+  plots$coverage +
+  plots$corr2 +
+  plots$corr1 +
+  plots$beta_diff +
+  plots$scatter_en +
+  plots$scatter_plus +
+  plots$scatter_minus +
+  plots$scatter_bias +
+  plots$dist_bias +
+  plot_layout(design = layout) 
+
+ggsave(paste0(out_dir, '/analysis_', opt$sample, '.pdf'), dpi = 300, height = 12, width=10, units='in')
 
 
 
