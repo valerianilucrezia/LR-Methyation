@@ -1,3 +1,18 @@
+if (!require("optparse", quietly = TRUE))
+  install.packages("optparse")
+
+if (!require("dplyr", quietly = TRUE))
+  install.packages("dplyr")
+
+if (!require("data.table", quietly = TRUE))
+  install.packages("data.table")
+
+if (!require("patchwork", quietly = TRUE))
+  install.packages("patchwork")
+
+if (!require("ggplot2", quietly = TRUE))
+  install.packages("ggplot2")
+
 library(optparse)
 library(dplyr)
 library(data.table)
@@ -11,10 +26,10 @@ options(bitmapType='cairo')
 my_theme <- theme_bw() + theme(
   legend.text = element_text(size=15), 
   title = element_text(size=13, color = 'gray20'),
-  axis.title.x = element_text(size = 16, color = 'gray20'),
-  axis.text.x = element_text(size = 15, color = 'gray20'),
-  axis.title.y = element_text(size = 16, color = 'gray20'),
-  axis.text.y = element_text(size = 15, color = 'gray20'))
+  axis.title.x = element_text(size = 12, color = 'gray20'),
+  axis.text.x = element_text(size = 12, color = 'gray20'),
+  axis.title.y = element_text(size = 12, color = 'gray20'),
+  axis.text.y = element_text(size = 12, color = 'gray20'))
 chrs <- paste0('chr', 1:22)
 
 option_list <- list(
@@ -31,7 +46,7 @@ opt_parser <- OptionParser(option_list = option_list);
 opt <- parse_args(opt_parser);
 
 out_dir <- file.path(opt$output, opt$sample)
-dir.create(out_dir)
+dir.create(out_dir, showWarnings = FALSE)
 
 f_nanopore <- opt$nanopore
 f_epic <- opt$epic
@@ -105,13 +120,13 @@ pl2 <- np_cov %>%
     xlim(-0.01,1.01) +
     my_theme 
 
-pl_strand[[i]] <- pl1
-pl_strand[[i+1]] <- pl2
-pl_strand[[1]] + pl_strand[[2]] +
-  pl_strand[[3]] + pl_strand[[4]] +
-  pl_strand[[5]] + pl_strand[[6]] +
-  plot_layout(nrow=3, ncol=2)
-ggsave(paste0(out_dir, '/nanopore_', opt$sample, '.pdf'), dpi = 300, height=7, width=10, units='in')
+# pl_strand[[i]] <- pl1
+# pl_strand[[i+1]] <- pl2
+# pl_strand[[1]] + pl_strand[[2]] +
+#   pl_strand[[3]] + pl_strand[[4]] +
+#   pl_strand[[5]] + pl_strand[[6]] +
+#   plot_layout(nrow=3, ncol=2)
+# ggsave(paste0(out_dir, '/nanopore_', opt$sample, '.pdf'), dpi = 300, height=7, width=10, units='in')
 
 # EPIC analysis ####
 plots <- list()
@@ -133,7 +148,11 @@ np_cov <- np_cov %>%   # takes time
   dplyr::rename(beta_np = beta) 
 by <- join_by(id)
 df <- left_join(epic, np_cov, by)
-df <- df %>% filter(!is.na(beta_epic)) %>% filter(!(is.na(beta_np)))
+df <- df %>% 
+  filter(!is.na(beta_epic)) %>% 
+  filter(!(is.na(beta_np))) %>% 
+  dplyr::mutate(diff = beta_epic - beta_np,
+                abs_diff = abs(beta_epic - beta_np))
 saveRDS(df, paste0(out_dir,'/', opt$sample, '.RDS'))
 
 plots[['density']] <- df %>% 
@@ -151,6 +170,7 @@ plots[['density']] <- df %>%
 plots[['coverage']] <- df %>% 
   ggplot() +
   geom_histogram(aes(x = cov), binwidth = 2, fill = 'darkgoldenrod', alpha = .7) +
+  geom_vline(aes(xintercept = mean(df$cov)), color = 'darkgoldenrod1') +
   xlab('Coverage') +
   xlim(0, 150) +
   my_theme
@@ -179,7 +199,7 @@ cov_cor <- tibble(cov = seq(1, 120),
 
 plots[['corr1']] <- cov_cor %>% 
   ggplot() +
-  geom_point(aes(x = cov, y = corr), color = 'lightsalmon3') +
+  geom_point(aes(x = cov, y = corr), color = 'lightsalmon3', size = 0.5) +
   geom_hline(aes(yintercept = cor(df$beta_epic, df$beta_np)), color = 'lightsalmon') +
   geom_vline(aes(xintercept = mean(df$cov)), color = 'lightsalmon4') +
   ylim(0.5,1) +
@@ -190,9 +210,9 @@ plots[['corr1']] <- cov_cor %>%
 
 plots[['corr2']]  <- cov_cor %>% 
   ggplot() +
-  geom_point(aes(x = cov, y = nprobes), color = 'lightsalmon3') +
+  geom_point(aes(x = cov, y = nprobes/nrow(df)), color = 'lightsalmon3', size = 0.5) +
   geom_vline(aes(xintercept = mean(df$cov)), color = 'lightsalmon4') +
-  ylab('Nprobes') +
+  ylab('n_probes/tot_probes') +
   xlab('Coverage') +
   xlim(0,120) +
   my_theme
@@ -207,26 +227,55 @@ plots[['beta_diff']]  <- df %>% ggplot() +
   my_theme
 
 
+nprobes <- c()
+for (d in c(0.01, 0.02, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35 ,0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9,0.95,  1)){
+  tmp <- df %>% dplyr::filter(diff >= d)
+  nprobes <- c(nprobes, length(unique(tmp$probes)))
+}
+df_diff <- tibble(diff =  c(0.01, 0.02, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35 ,0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9,0.95,  1),
+                  nprobes = nprobes)
+
+plots[['scatter_probes']]  <-  df_diff %>% 
+  ggplot() +
+  geom_point(aes(x = as.factor(diff), y = nprobes/nrow(df)),color='lightsalmon3' , size = 0.5) +
+  xlab('abs(EPIC - Nanopore) <= x') + 
+  ylab('n_probes/tot_probes') +
+  my_theme +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1, size = 9)) 
+
+get_bins <- function(df, col1, col2, nbins){
+  dx <- 1 / nbins
+  df_round <- df %>% 
+    dplyr::mutate(col1 = ceiling(df[[`col1`]] / dx), col2 = ceiling(df[[`col2`]] / dx)) %>% 
+    dplyr::group_by(col1, col2) %>% 
+    dplyr::summarise(n = n())
+  return(df_round)
+}
+
+nbins <- 150
+df_bins_en <- get_bins(df, 'beta_epic', 'beta_np', nbins)
 plots[['scatter_en']] <- df %>%
   ggplot() +
-  geom_bin2d(aes(x = beta_epic, y = beta_np), bins = 150) +
-  scale_fill_gradientn(limits=c(1, 2500), colors=c("lightyellow2","darkgoldenrod1", 'darkgoldenrod'),
-                       values = scales::rescale(c(1,1000,25000))) +
+  geom_bin2d(aes(x = beta_epic, y = beta_np), bins = nbins) +
+  scale_fill_gradientn(limits=c(1, max(df_bins_en$n)), 
+                       colors=c("lightyellow2","darkgoldenrod1", 'darkgoldenrod'),
+                       values = scales::rescale(c(1, stats::quantile(df_bins_en$n, .9), max(df_bins_en$n)))) +
   geom_abline(intercept = 0, color = 'ivory4', linetype='twodash') +
   geom_smooth(aes(x = beta_epic, y = beta_np), method = "lm", color = 'ivory4', alpha = .2) +
-  
   xlab('EPIC') + 
   ylab('Nanopore') + 
-  ggtitle(round(cor(df$beta_epic, df$beta_np),3)) +
+  ggtitle(paste0('Nprobes = ', nrow(df), ' Corr = ', round(cor(df$beta_epic, df$beta_np), 3)) ) + 
   my_theme +
   theme(legend.position = 'none')
 
 
+df_bins_plus <- get_bins(df, 'beta_epic', 'beta_plus', nbins)
 plots[['scatter_plus']] <- df %>%
   ggplot() +
-  geom_bin2d(aes(x = beta_epic, y = beta_plus), bins = 150) +
-  scale_fill_gradientn(limits=c(1, 2500), colors=c("powderblue","deepskyblue3", 'deepskyblue4'),
-                       values = scales::rescale(c(1,1000,25000))) +
+  geom_bin2d(aes(x = beta_epic, y = beta_plus), bins = nbins) +
+  scale_fill_gradientn(limits=c(1, max(df_bins_plus$n)), 
+                       colors=c("powderblue","deepskyblue3", 'deepskyblue4'),
+                       values = scales::rescale(c(1, stats::quantile(df_bins_plus$n, .9), max(df_bins_plus$n)))) +
   geom_abline(intercept = 0, color = 'ivory4', linetype='twodash') +
   geom_smooth(aes(x = beta_epic, y = beta_plus), method = "lm", color = 'ivory4', alpha = .2) +
   xlab('EPIC') + 
@@ -234,13 +283,13 @@ plots[['scatter_plus']] <- df %>%
   my_theme +
   theme(legend.position = 'none')
 
-
+df_bins_minus <- get_bins(df, 'beta_epic', 'beta_minus', nbins)
 plots[['scatter_minus']] <- df %>% 
   ggplot() +
-  geom_bin2d(aes(x = beta_epic, y = beta_minus), bins = 150) +
-  scale_fill_gradientn(limits=c(1, 2500), 
+  geom_bin2d(aes(x = beta_epic, y = beta_minus), bins = nbins) +
+  scale_fill_gradientn(limits=c(1, max(df_bins_minus$n)), 
                        colors=c("lavenderblush2","coral1", 'coral3'),
-                       values = scales::rescale(c(1,1000,25000))) +
+                       values =scales::rescale(c(1, stats::quantile(df_bins_minus$n, .9), max(df_bins_minus$n)))) +
   geom_abline(intercept = 0, color = 'ivory4', linetype='twodash') +
   geom_smooth(aes(x = beta_epic, y = beta_minus), method = "lm", color = 'ivory4', alpha = .2) +
   xlab('EPIC') + 
@@ -256,12 +305,14 @@ plots[['coverage']] <- df %>%
   xlim(0, 150) +
   my_theme
 
+
+df_bins_bias <- get_bins(df, 'beta_plus', 'beta_minus', nbins)
 plots[['scatter_bias']] <- df %>% 
   ggplot() +
-  geom_bin2d(aes(x = beta_plus, y = beta_minus), bins = 150) +
-  scale_fill_gradientn(limits = c(1, 2500),
+  geom_bin2d(aes(x = beta_plus, y = beta_minus), bins = nbins) +
+  scale_fill_gradientn(limits = c(1, max(df_bins_bias$n)),
                        colors = c("thistle3", "mediumpurple3", 'mediumpurple4'),
-                       values = scales::rescale(c(1,100,2500))) +
+                       values =scales::rescale(c(1, stats::quantile(df_bins_bias$n, .9), max(df_bins_bias$n)))) +
   xlab('Beta+') + 
   ylab('Beta-') + 
   my_theme +
@@ -269,16 +320,37 @@ plots[['scatter_bias']] <- df %>%
 
 plots[['dist_bias']] <- df %>% 
   ggplot() +
-  geom_histogram(aes(x = beta_plus - beta_minus), binwidth = 0.05, fill = 'mediumpurple4', alpha = 0.7) +
+  geom_histogram(aes(x = beta_plus - beta_minus), binwidth = 0.02, fill = 'mediumpurple4', alpha = 0.7) +
+  geom_vline(aes(xintercept = mean(df$beta_plus - df$beta_minus, na.rm  = TRUE)), color = 'mediumpurple1') +
   xlab('Beta+ - Beta-') +
   xlim(-1.01, 1.01) +
   my_theme +
   theme(legend.position = 'none')
 
-layout <- "ABF
-           DCE
-           GH#
-           IL#
+
+df_filter <- df %>% 
+  mutate(diff_strand = abs(beta_plus - beta_minus)) %>% 
+  filter(diff_strand > 0.3)
+nbins <- 120
+df_bins_bias_beta <- get_bins(df_filter, 'beta_epic', 'beta_np', nbins)
+plots[['scatter_bias_beta']] <- df_filter %>% 
+  ggplot() +
+  geom_bin2d(aes(x = beta_epic, y = beta_np), bins = nbins) +
+  geom_abline(intercept = 0, color = 'ivory4', linetype='twodash') +
+  scale_fill_gradientn(limits = c(1, max(df_bins_bias_beta$n)),
+                       colors=c("lightyellow2","darkgoldenrod1", 'darkgoldenrod'),
+                       values =scales::rescale(c(1, stats::quantile(df_bins_bias_beta$n, .9), max(df_bins_bias_beta$n)))) +
+  xlab('EPIC') + 
+  ylab('Nanopore') + 
+  my_theme +
+  theme(legend.position = 'none')
+
+
+
+layout <- "AFE
+           BDC
+           MGH
+           NIL
           "
 
 plots$density +
@@ -291,9 +363,15 @@ plots$density +
   plots$scatter_minus +
   plots$scatter_bias +
   plots$dist_bias +
-  plot_layout(design = layout) 
+  plots$scatter_probes + 
+  plots$scatter_bias_beta + 
+  patchwork::plot_layout(design = layout) +
+  patchwork::plot_annotation(title = opt$sample)
 
-ggsave(paste0(out_dir, '/analysis_', opt$sample, '.pdf'), dpi = 300, height = 12, width=10, units='in')
+
+
+#ggsave('/Users/lucreziavaleriani/Desktop/prova.pdf',  dpi = 200, height = 12, width = 10, units='in')
+ggsave(paste0(out_dir, '/analysis_', opt$sample, '.pdf'), dpi = 200, height = 12, width = 10, units='in')
 
 
 
