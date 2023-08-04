@@ -10,15 +10,6 @@ library(ggplot2)
 library(ggseqlogo)
 options(bitmapType='cairo')
 
-my_theme <- theme_bw() + theme(
-  legend.text = element_text(size=12), 
-  title = element_text(size=12, color = 'gray20'),
-  axis.title.x = element_text(size = 12, color = 'gray20'),
-  axis.text.x = element_text(size = 12, color = 'gray20'),
-  axis.title.y = element_text(size = 12, color = 'gray20'),
-  axis.text.y = element_text(size = 12, color = 'gray20'))
-
-
 my_palette <- c('palegreen4', 'cadetblue', 'burlywood3', 'darkseagreen', 'darksalmon', 
                 'lightpink2', 'indianred','ivory3', 'skyblue4', 'plum4', 
                 'tan3', 'lightgoldenrod2', 'firebrick4', 'darkgoldenrod3', 'slateblue4',
@@ -39,7 +30,6 @@ out_dir <- file.path(opt$output, opt$sample)
 df <- readRDS(paste0(out_dir,'/', opt$sample, '.RDS'))
 df <- df %>% filter(cov > 20)
 kmer <- readRDS('./data/kmer.RDS') 
-# df <- readRDS('./res/prova/prova.RDS') 
 
 cs1 <-  ggseqlogo::make_col_scheme(chars=c('A', 'T', 'C', 'G') , 
                                    cols=c('seagreen4', 'brown', 'dodgerblue4', 'goldenrod'))

@@ -22,16 +22,6 @@ library(ggplot2)
 setwd('./')
 options(bitmapType='cairo')
 
-# Define #### 
-my_theme <- theme_bw() + theme(
-  legend.text = element_text(size=15), 
-  title = element_text(size=13, color = 'gray20'),
-  axis.title.x = element_text(size = 12, color = 'gray20'),
-  axis.text.x = element_text(size = 12, color = 'gray20'),
-  axis.title.y = element_text(size = 12, color = 'gray20'),
-  axis.text.y = element_text(size = 12, color = 'gray20'))
-chrs <- paste0('chr', 1:22)
-
 option_list <- list(
   make_option(c("-n", "--nanopore"), type="character", default=NULL,
               help = "nanopore file", metavar="character"),
@@ -50,7 +40,6 @@ dir.create(out_dir, showWarnings = FALSE)
 
 f_nanopore <- opt$nanopore
 f_epic <- opt$epic
-
 
 # Nanopore analysis ####
 np <- fread(f_nanopore)
@@ -369,8 +358,6 @@ plots$density +
   patchwork::plot_annotation(title = opt$sample)
 
 
-
-#ggsave('/Users/lucreziavaleriani/Desktop/prova.pdf',  dpi = 200, height = 12, width = 10, units='in')
 ggsave(paste0(out_dir, '/analysis_', opt$sample, '.pdf'), dpi = 200, height = 12, width = 10, units='in')
 
 

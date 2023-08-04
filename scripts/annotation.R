@@ -5,14 +5,6 @@ library(patchwork)
 library(ggplot2)
 options(bitmapType='cairo')
 
-my_theme <- theme_bw() + theme(
-  legend.text = element_text(size=12), 
-  title = element_text(size=12, color = 'gray20'),
-  axis.title.x = element_text(size = 12, color = 'gray20'),
-  axis.text.x = element_text(size = 12, color = 'gray20'),
-  axis.title.y = element_text(size = 12, color = 'gray20'),
-  axis.text.y = element_text(size = 12, color = 'gray20'))
-
 option_list <- list(
   make_option(c("-o", "--output"), type="character", default=NULL,
               help = "output directory", metavar="character"), 
