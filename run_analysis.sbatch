@@ -15,6 +15,4 @@ name=prova
 
 cd /orfeo/LTS/LADE/LT_storage/lvaleriani/methylation/prova_GEL/LR-Methyation
 
-#Rscript ./scripts/main_analysis.R --nanopore $np --epic $epic --output $out --sample $name
-#Rscript ./scripts/annotation.R  --output $out --sample $name
-Rscript ./scripts/kmer.R  --output $out --sample $name
+Rscript ./scripts/main.R --nanopore $np --epic $epic --output $out --sample $name
