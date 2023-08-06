@@ -10,23 +10,17 @@ Required libraries:
 *  `optparse `
 *  `dplyr `
 *  `patchwork `
-*   `ggpubr `
+*  `ggpubr `
+*  `ggplogo `
 
 ## How to run
 ### General analysis
 ```
-Rscript ./scripts/main_analysis.R  \ 
+Rscript ./scripts/main.R  \ 
         --nanopore $np_file \
         --epic $epic_file \
         --output $output_directory \
         --sample $sample_name 
-```
-
-### Annotation and k-mer analysis
-```
-Rscript ./scripts/other_analysis.R  \  
-         --output $output_directory \ `
-        --sample $sample_name `
 ```
 
 ### Run Full analysis with a job array in a cluster with SLURM scheduler
