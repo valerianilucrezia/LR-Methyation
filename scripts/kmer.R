@@ -64,14 +64,16 @@ kmer <- function(df, out_dir, sample_name){
           axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
   
   
-  plots[['barplot_PM']] <- PM_low_kmer %>% ggplot() +
+  plots[['barplot_PM']] <- PM_low_kmer %>% 
+    ggplot() +
     geom_col(aes(y = kmer, x = nprobes, fill = c_EN)) +
     scale_fill_gradientn(name = 'cor(EPIC, Nanopore)', colors=c("darkslategray","darkslategray4", 'snow3')) +
     my_theme +
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
           axis.text.y = element_text(size = 8))
   
-  plots[['barplot_EN']]  <- EN_low_kmer %>% ggplot() +
+  plots[['barplot_EN']]  <- EN_low_kmer %>% 
+    ggplot() +
     geom_col(aes(y = kmer, x = nprobes, fill = c_EN)) +
     scale_fill_gradientn(name = 'cor(EPIC, Nanopore)', colors=c("darkslategray","darkslategray4", 'snow3')) +
     my_theme +

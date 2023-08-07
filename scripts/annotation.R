@@ -11,7 +11,7 @@ annotation <- function(df, out_dir, sample_name){
   colors_genes <- list(promoter = 'darkolivegreen',  exon = 'palevioletred3' , 
                        intron = 'orange2', intergenic = 'mediumpurple4')
   
-  genes <- df_annotation %>% filter(annot.type == 'genes')
+  genes <- df_annotation %>% dplyr::filter(annot.type == 'genes')
   plots[['genes_boxplot']] <- genes %>% 
     ggplot() +
     geom_boxplot(aes(x = annot.id, y = beta_epic - beta_np, fill = annot.id), outlier.shape = NA) +
@@ -55,7 +55,7 @@ annotation <- function(df, out_dir, sample_name){
   
   colors_cpgs <- list(shore = 'salmon3', shelf = 'deepskyblue4', 
                       island = 'aquamarine4', inter = 'hotpink4')
-  cpgs <- df_annotation %>% filter(annot.type == 'cpg')
+  cpgs <- df_annotation %>% dplyr::filter(annot.type == 'cpg')
   
   
   plots[['cpgs_boxplot']] <- cpgs %>% 

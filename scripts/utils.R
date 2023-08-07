@@ -26,7 +26,7 @@ get_corr <- function(v1, v2){
 
 analyze_kmer <- function(all, startk, endk, kk){
   mer <- lapply(all$kmer, FUN = function(kmer){
-    k <- substr(kmer, 101 - startk, 102 + endk)
+    k <- stringr::substr(kmer, 101 - startk, 102 + endk)
   })
   mer <- mer %>% unlist()
   all <- bind_cols(all, n_kmer = mer)

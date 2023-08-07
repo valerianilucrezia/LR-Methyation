@@ -1,6 +1,7 @@
 main_analysis <- function(f_nanopore, f_epic, out_dir, sample_name){
-  np <- fread(f_nanopore)
+  np <- data.table::fread(f_nanopore)
   colnames(np) <- c("chrom", "start", "end", "name", "score", "strand", "tstart", "tend", "color", "coverage", "freq", "canon", "mod", "filt")
+  
   np <- np %>% dplyr::filter(chrom %in% chrs) %>% 
     dplyr::mutate(beta = mod/(mod+canon)) %>% 
     dplyr::mutate(nread = mod+canon) %>% 
@@ -65,13 +66,16 @@ main_analysis <- function(f_nanopore, f_epic, out_dir, sample_name){
       xlim(-0.01,1.01) +
       my_theme 
   
-  # pl_strand[[i]] <- pl1
-  # pl_strand[[i+1]] <- pl2
-  # pl_strand[[1]] + pl_strand[[2]] +
-  #   pl_strand[[3]] + pl_strand[[4]] +
-  #   pl_strand[[5]] + pl_strand[[6]] +
-  #   plot_layout(nrow=3, ncol=2)
-  # ggsave(paste0(out_dir, '/nanopore_', sample_name, '.pdf'), dpi = 300, height=7, width=10, units='in')
+  pl_strand[[i]] <- pl1
+  pl_strand[[i+1]] <- pl2
+  pl_strand[[1]] + 
+    pl_strand[[2]] +
+    pl_strand[[3]] + 
+    pl_strand[[4]] +
+    pl_strand[[5]] +
+    pl_strand[[6]] +
+    patchwork::plot_layout(nrow=3, ncol=2)
+  ggsave(paste0(out_dir, '/nanopore_', sample_name, '.pdf'), dpi = 300, height=7, width=10, units='in')
 
   # EPIC analysis ####
   plots <- list()
@@ -99,7 +103,6 @@ main_analysis <- function(f_nanopore, f_epic, out_dir, sample_name){
     dplyr::filter(!(is.na(beta_np))) %>% 
     dplyr::mutate(diff = beta_epic - beta_np,
                   abs_diff = abs(beta_epic - beta_np))
-  #saveRDS(df, paste0(out_dir,'/', sample_name, '.RDS'))
   
   plots[['density']] <- df %>% 
     tidyr::pivot_longer(cols = c(beta_epic, beta_np)) %>% 
@@ -164,7 +167,7 @@ main_analysis <- function(f_nanopore, f_epic, out_dir, sample_name){
     my_theme
   
   
-  df <- df %>%  dplyr::filter(cov > 20)
+  df <- df %>% dplyr::filter(cov > 20)
   
   plots[['beta_diff']]  <- df %>% ggplot() +
     geom_histogram(aes(x = beta_epic - beta_np), fill = 'lightsalmon3', alpha = 0.8, binwidth = 0.01) +
@@ -173,12 +176,13 @@ main_analysis <- function(f_nanopore, f_epic, out_dir, sample_name){
     my_theme
   
   
+  dff <- c(0.01, 0.02, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35 ,0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9,0.95,  1)
   nprobes <- c()
-  for (d in c(0.01, 0.02, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35 ,0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9,0.95,  1)){
+  for (d in dff){
     tmp <- df %>% dplyr::filter(diff >= d)
     nprobes <- c(nprobes, length(unique(tmp$probes)))
   }
-  df_diff <-  dplyr::tibble(diff =  c(0.01, 0.02, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35 ,0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9,0.95,  1),
+  df_diff <-  dplyr::tibble(diff =  dff,
                     nprobes = nprobes)
   
   plots[['scatter_probes']]  <-  df_diff %>% 
