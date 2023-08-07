@@ -12,9 +12,12 @@ Required libraries:
 *  `patchwork `
 *  `ggpubr `
 *  `ggplogo `
+*  `stringr`
+*  `tidyr`
+*  `gridExtra`
 
 ## How to run
-### General analysis
+### Analysis
 ```
 Rscript ./scripts/main.R  \ 
         --nanopore $np_file \
@@ -24,12 +27,12 @@ Rscript ./scripts/main.R  \
 ```
 
 ### Run Full analysis with a job array in a cluster with SLURM scheduler
-Moodify `run_analysis.sbatch` based on number of samples and your resources, then:
+Modify `run_analysis.sbatch` based on number of samples and your resources, then:
 
 ```
 sbatch run_analysis.sbatch sample_ids
 ```
-where `sample_ids` is file where listed all samples id.
+where `sample_ids` is file where listed all samples id with **path**. 
 
 ### File requirments 
 `$np_file` 
