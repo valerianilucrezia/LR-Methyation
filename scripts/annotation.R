@@ -1,6 +1,5 @@
 annotation <- function(df, out_dir, sample_name){
-  # df <- readRDS(paste0(out_dir,'/', sample_name, '.RDS'))
-  df <- df %>% filter(cov > 20)
+  df <- df %>% dplyr::filter(cov > 20)
   
   annotation <- readRDS('./data/annotation.RDS')
   annotation <- annotation %>% 

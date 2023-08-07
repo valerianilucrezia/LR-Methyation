@@ -24,11 +24,11 @@ library(patchwork)
 library(ggplot2)
 library(ggseqlogo)
 
-
 setwd('./')
 source('./scripts/main_analysis.R')
 source('./scripts/kmer.R')
 source('./scripts/annotation.R')
+source('./scripts/DMR.R')
 source('./scripts/utils.R')
 
 options(bitmapType='cairo')
@@ -59,5 +59,9 @@ print('annotation done')
 
 kmer(df, out_dir, opt$sample)
 print('kmer analysis done') 
+
+DMR(df, out_dir, opt$sample)
+print('DMR analysis done') 
+
 
 
