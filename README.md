@@ -11,10 +11,11 @@ Required libraries:
 *  `dplyr `
 *  `patchwork `
 *  `ggpubr `
-*  `ggplogo `
+*  `ggseqlogo `
 *  `stringr`
 *  `tidyr`
 *  `gridExtra`
+*  `data.table`
 
 ## How to run
 ### Analysis
@@ -25,14 +26,6 @@ Rscript ./scripts/main.R  \
         --output $output_directory \
         --sample $sample_name 
 ```
-
-### Run Full analysis with a job array in a cluster with SLURM scheduler
-Modify `run_analysis.sbatch` based on number of samples and your resources, then:
-
-```
-sbatch run_analysis.sbatch sample_ids
-```
-where `sample_ids` is file where listed all samples id with **path**. 
 
 ### File requirments 
 `$np_file` 
