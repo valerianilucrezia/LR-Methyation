@@ -26,7 +26,7 @@ Rscript ./scripts/main.R  \
         --sample $sample_name 
 ```
 
-### Run Full analysis with a job array in a cluster with SLURM scheduler
+### Run Full analysis with a **job array** in a cluster with SLURM scheduler
 Modify `run_analysis.sbatch` based on number of samples and your resources, then:
 
 ```
