@@ -27,14 +27,6 @@ Rscript ./scripts/main.R  \
         --sample $sample_name 
 ```
 
-### Run Full analysis with a **job array** in a cluster with SLURM scheduler
-Modify `run_analysis.sbatch` based on number of samples and your resources, then:
-
-```
-sbatch run_analysis.sbatch sample_ids
-```
-where `sample_ids` is a file where listed all samples id with **path**. 
-
 ### File requirments 
 `$np_file` 
 [modbam2bed](https://github.com/epi2me-labs/modbam2bed) output file with the following **13** fields (from https://github.com/epi2me-labs/modbam2bed):
