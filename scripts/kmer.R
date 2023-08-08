@@ -20,6 +20,9 @@ kmer <- function(df, out_dir, sample_name){
   EN_low_kmer <- res_kmer %>% dplyr::filter(p_EN < 0.01, c_EN < 0.95)
   PM_low_kmer <- res_kmer %>% dplyr::filter(p_PM < 0.01, c_PM < 0.9)
   
+  EN_low_kmer <- EN_low_kmer %>% arrange(c_EN) %>% slice(1:20)
+  PM_low_kmer <- PM_low_kmer %>% arrange(c_PM) %>% slice(1:20)
+  
   plots <- list()
   plots[['logo_EN']] <- ggplot() +
     ggseqlogo::geom_logo(EN_low_kmer$kmer %>% unlist(), method = 'prob', col_scheme = cs1) +  
