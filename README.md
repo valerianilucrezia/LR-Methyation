@@ -32,7 +32,7 @@ Modify `run_analysis.sbatch` based on number of samples and your resources, then
 ```
 sbatch run_analysis.sbatch sample_ids
 ```
-where `sample_ids` is file where listed all samples id with **path**. 
+where `sample_ids` is a file where listed all samples id with **path**. 
 
 ### File requirments 
 `$np_file` 
