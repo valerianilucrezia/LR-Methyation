@@ -57,11 +57,12 @@ print('main_analysis done')
 annotation(df, out_dir, opt$sample)
 print('annotation done')
 
+DMR(df, out_dir, opt$sample)
+print('DMR analysis done') 
+
 kmer(df, out_dir, opt$sample)
 print('kmer analysis done') 
 
-DMR(df, out_dir, opt$sample)
-print('DMR analysis done') 
 
 
 
