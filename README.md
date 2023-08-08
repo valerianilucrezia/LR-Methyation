@@ -11,10 +11,11 @@ Required libraries:
 *  `dplyr `
 *  `patchwork `
 *  `ggpubr `
-*  `ggplogo `
+*  `ggseqlogo `
 *  `stringr`
 *  `tidyr`
 *  `gridExtra`
+*  `data.table`
 
 ## How to run
 ### Analysis
