@@ -1,7 +1,7 @@
 annotation <- function(df, out_dir, sample_name){
   df <- df %>% dplyr::filter(cov > 20)
   
-  annotation <- readRDS('./data/annotation.RDS')
+  annotation <- readRDS('data/annotation.RDS')
   annotation <- annotation %>% 
     dplyr::select(-seqnames, -start, -end, -width, -strand)
   by <- join_by(probes)
@@ -99,7 +99,7 @@ annotation <- function(df, out_dir, sample_name){
   
   
   # Stratification ####
-  stratification <- readRDS('./data/stratification.RDS')
+  stratification <- readRDS('data/stratification.RDS')
   stratification <- stratification %>% 
     dplyr::select(-chrom, -start, -end)
   
@@ -164,7 +164,7 @@ annotation <- function(df, out_dir, sample_name){
   colors_cg <- c('palegreen4', 'cadetblue', 'burlywood3', 'darkseagreen', 'darksalmon', 'lightpink2', 'indianred',
                                'ivory3', 'skyblue4', 'plum4', 'tan3', 'lightgoldenrod2')
                                
-  cg_density <- readRDS('./data/cg_density.RDS')
+  cg_density <- readRDS('data/cg_density.RDS')
   cg_density <- cg_density %>% dplyr::select(-chrom, -start, -end)
   df_cg <- left_join(df, cg_density)
   cgs <- unique(cg_density$cg)[unique(cg_density$cg) != '']

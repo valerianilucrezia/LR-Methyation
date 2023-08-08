@@ -1,6 +1,6 @@
 DMR <- function(df, out_dir, sample_name) {
   df <- df %>% dplyr::filter(cov > 20)
-  dmr <- data.table::fread('./data/cpg_DM.csv') 
+  dmr <- data.table::fread('data/cpg_DM.csv') 
   
   df <- df %>% dplyr::mutate(meth = ifelse(probes %in% dmr$IlmnID, 'DM', 'NDM'))
   df_dmr <- df %>% dplyr::filter(meth == 'DM')
@@ -42,7 +42,7 @@ DMR <- function(df, out_dir, sample_name) {
           axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
   
   
-  stratification <- readRDS('./data/stratification.RDS')
+  stratification <- readRDS('data/stratification.RDS')
   stratification <- stratification %>% 
     dplyr::select(-chrom, -start, -end)
   by <- join_by(probes)
@@ -81,7 +81,7 @@ DMR <- function(df, out_dir, sample_name) {
   
   
                              
-  cg_density <- readRDS('./data/cg_density.RDS')
+  cg_density <- readRDS('data/cg_density.RDS')
   cg_density <- cg_density %>% dplyr::select(-chrom, -start, -end)
   df_cg <- left_join(df, cg_density)
   cgs <- unique(cg_density$cg)[unique(cg_density$cg) != '']
@@ -111,7 +111,7 @@ DMR <- function(df, out_dir, sample_name) {
     theme(legend.position = 'none', 
           axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) 
   
-  annotation <- readRDS('./data/annotation.RDS')
+  annotation <- readRDS('data/annotation.RDS')
   annotation <- annotation %>% 
     dplyr::select(-seqnames, -start, -end, -width, -strand)
   by <- join_by(probes)

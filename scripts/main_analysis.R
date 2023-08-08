@@ -80,7 +80,7 @@ main_analysis <- function(f_nanopore, f_epic, out_dir, sample_name){
   # EPIC analysis ####
   plots <- list()
   
-  manifest <- '../data/manifest_epic.RDS'
+  manifest <- 'data/manifest_epic.RDS'
   manifest_epic <- readRDS(manifest)
   
   epic <- data.table::fread(f_epic, header = FALSE, skip = 1)
