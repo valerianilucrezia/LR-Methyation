@@ -1,5 +1,5 @@
 annotation <- function(df, out_dir, sample_name){
-  df <- df %>% dplyr::filter(cov > 20)
+  df <- df %>% dplyr::filter(cov >= 10)
   
   annotation <- readRDS('data/annotation.RDS')
   annotation <- annotation %>% 

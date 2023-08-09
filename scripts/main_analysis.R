@@ -167,7 +167,7 @@ main_analysis <- function(f_nanopore, f_epic, out_dir, sample_name){
     my_theme
   
   
-  df <- df %>% dplyr::filter(cov > 20)
+  df <- df %>% dplyr::filter(cov >= 10)
   
   plots[['beta_diff']]  <- df %>% ggplot() +
     geom_histogram(aes(x = beta_epic - beta_np), fill = 'lightsalmon3', alpha = 0.8, binwidth = 0.01) +

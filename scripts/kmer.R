@@ -5,7 +5,7 @@ kmer <- function(df, out_dir, sample_name){
                   'tan3', 'lightgoldenrod2', 'firebrick4', 'darkgoldenrod3', 'slateblue4',
                   'slategray4', 'darkolivegreen4', 'chocolate4', 'hotpink3', 'steelblue2')
   
-  df <- df %>% dplyr::filter(cov > 20)
+  df <- df %>% dplyr::filter(cov >= 10)
   kmer <- readRDS('data/kmer.RDS') 
   
   cs1 <-  ggseqlogo::make_col_scheme(chars=c('A', 'T', 'C', 'G') , 

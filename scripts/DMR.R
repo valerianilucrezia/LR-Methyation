@@ -1,5 +1,5 @@
 DMR <- function(df, out_dir, sample_name) {
-  df <- df %>% dplyr::filter(cov > 20)
+  df <- df %>% dplyr::filter(cov >= 10)
   dmr <- data.table::fread('data/cpg_DM.csv') 
   
   df <- df %>% dplyr::mutate(meth = ifelse(probes %in% dmr$IlmnID, 'DM', 'NDM'))
