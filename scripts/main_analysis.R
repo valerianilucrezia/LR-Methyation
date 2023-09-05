@@ -52,30 +52,30 @@ main_analysis <- function(f_nanopore, f_epic, out_dir, sample_name){
     dplyr::mutate(cov =(mod+mod_minus+canon+canon_minus)) %>% 
     dplyr::select(-coverage, -strand, -coverage_minus)
   
-  pl1 <- np_cov %>% 
-      ggplot() +
-      geom_histogram(aes(x = cov), fill = color_strand$mean, alpha = 0.8, bins = 200) +
-      xlab('Coverage') + 
-      xlim(0, 200) +
-      my_theme
-    
-  pl2 <- np_cov %>% 
-      ggplot() +
-      geom_histogram(aes(x = beta), fill = color_strand$mean, alpha = 0.8, bins = 200) +
-      xlab('Beta') + 
-      xlim(-0.01,1.01) +
-      my_theme 
-  
-  pl_strand[[i]] <- pl1
-  pl_strand[[i+1]] <- pl2
-  pl_strand[[1]] + 
-    pl_strand[[2]] +
-    pl_strand[[3]] + 
-    pl_strand[[4]] +
-    pl_strand[[5]] +
-    pl_strand[[6]] +
-    patchwork::plot_layout(nrow=3, ncol=2)
-  ggsave(paste0(out_dir, '/nanopore_', sample_name, '.pdf'), dpi = 300, height=7, width=10, units='in')
+  # pl1 <- np_cov %>% 
+  #     ggplot() +
+  #     geom_histogram(aes(x = cov), fill = color_strand$mean, alpha = 0.8, bins = 200) +
+  #     xlab('Coverage') + 
+  #     xlim(0, 200) +
+  #     my_theme
+  #   
+  # pl2 <- np_cov %>% 
+  #     ggplot() +
+  #     geom_histogram(aes(x = beta), fill = color_strand$mean, alpha = 0.8, bins = 200) +
+  #     xlab('Beta') + 
+  #     xlim(-0.01,1.01) +
+  #     my_theme 
+  # 
+  # pl_strand[[i]] <- pl1
+  # pl_strand[[i+1]] <- pl2
+  # pl_strand[[1]] + 
+  #   pl_strand[[2]] +
+  #   pl_strand[[3]] + 
+  #   pl_strand[[4]] +
+  #   pl_strand[[5]] +
+  #   pl_strand[[6]] +
+  #   patchwork::plot_layout(nrow=3, ncol=2)
+  # ggsave(paste0(out_dir, '/nanopore_', sample_name, '.pdf'), dpi = 300, height=7, width=10, units='in')
 
   # EPIC analysis ####
   plots <- list()

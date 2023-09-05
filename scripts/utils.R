@@ -69,3 +69,55 @@ analyze_kmer <- function(all, startk, endk, kk){
                       nprobes = nprobes)
   
   return(list(all, df))}
+
+
+create_df <- function(f_nanopore, f_epic){
+  np <- data.table::fread(f_nanopore)
+  colnames(np) <- c("chrom", "start", "end", "name", "score", "strand", "tstart", "tend", "color", "coverage", "freq", "canon", "mod", "filt")
+  
+  np <- np %>% dplyr::filter(chrom %in% chrs) %>% 
+    dplyr::mutate(beta = mod/(mod+canon)) %>% 
+    dplyr::mutate(nread = mod+canon) %>% 
+    dplyr::select(-name, -freq, -filt, -tstart, -tend, -color)
+  
+  np_cov <- np[1:nrow(np)-1] %>% 
+    dplyr::mutate(beta_minus = np$beta[2:nrow(np)]) %>% 
+    dplyr::mutate(coverage_minus = np$coverage[2:nrow(np)]) %>% 
+    dplyr::mutate(nread_minus = np$nread[2:nrow(np)]) %>% 
+    dplyr::mutate(canon_minus = np$canon[2:nrow(np)]) %>% 
+    dplyr::mutate(mod_minus = np$mod[2:nrow(np)]) %>% 
+    dplyr::mutate(score_minus = np$score[2:nrow(np)]) %>% 
+    dplyr::rename(beta_plus = beta) %>% 
+    dplyr::filter(strand == '+') %>% 
+    dplyr::mutate(beta = ((mod+mod_minus)/(mod+mod_minus+canon+canon_minus))) %>% 
+    dplyr::mutate(cov =(mod+mod_minus+canon+canon_minus)) %>% 
+    dplyr::select(-coverage, -strand, -coverage_minus)
+  
+  manifest <- 'data/manifest_epic.RDS'
+  manifest_epic <- readRDS(manifest)
+  
+  epic <- data.table::fread(f_epic, header = FALSE, skip = 1)
+  colnames(epic) <- c('probes', 'beta_epic')
+  by_probes <- join_by(probes)
+  epic <-  left_join(manifest_epic, epic, by_probes) %>% 
+            dplyr::filter(!(is.na(beta_epic)))
+  
+  # Join and analyze data ####
+  epic <- epic %>% 
+    dplyr::mutate(id = paste(chrom, start, end, sep = ':')) %>% 
+    dplyr::select(-chrom, -start, -end)
+  
+  np_cov <- np_cov %>%   # takes time
+    dplyr::mutate(id = paste(chrom, start, end, sep = ':')) %>% 
+    dplyr::rename(beta_np = beta) 
+  
+  by <- join_by(id)
+  df <- left_join(epic, np_cov, by)
+  df <- df %>% 
+    dplyr::filter(!is.na(beta_epic)) %>% 
+    dplyr::filter(!(is.na(beta_np))) %>% 
+    dplyr::mutate(diff = beta_epic - beta_np,
+                  abs_diff = abs(beta_epic - beta_np))
+  df <- df %>% dplyr::filter(cov >= 10)
+  return(df)
+}

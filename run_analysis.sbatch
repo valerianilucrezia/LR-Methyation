@@ -8,9 +8,9 @@
 module load R/4.2.3
 
 np=/orfeo/LTS/LADE/LT_storage/lvaleriani/methylation/prova_GEL/input/all.cpg.bed
-epic=/orfeo/LTS/LADE/LT_storage/lvaleriani/methylation/prova_GEL/input/filtered_beta_mp.csv
+epic=/orfeo/LTS/LADE/LT_storage/lvaleriani/methylation/prova_GEL/input/beta_minfi_Noob.csv
 out=/orfeo/LTS/LADE/LT_storage/lvaleriani/methylation/prova_GEL/LR-Methyation/res
-name=prova
+name=prova_minfi_Noob
 
 
 cd /orfeo/LTS/LADE/LT_storage/lvaleriani/methylation/prova_GEL/LR-Methyation

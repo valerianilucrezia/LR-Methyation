@@ -52,6 +52,7 @@ f_nanopore <- opt$nanopore
 f_epic <- opt$epic
 
 df <- main_analysis(f_nanopore, f_epic, out_dir, opt$sample)
+saveRDS(df, paste0(out_dir, '/df.RDS'))
 print('main_analysis done')
 
 annotation(df, out_dir, opt$sample)
