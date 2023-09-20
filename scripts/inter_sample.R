@@ -15,6 +15,8 @@ option_list <- list(
               help = "list of samples", metavar="character"),
   make_option(c("-o", "--output"), type="character", default=NULL,
               help = "output directory", metavar="character"))
+  make_option(c("-n", "--name"), type="character", default=NULL,
+            help = "name", metavar="character"))
 
 opt_parser <- OptionParser(option_list = option_list);
 opt <- parse_args(opt_parser);
@@ -47,6 +49,6 @@ intra <- df %>% group_by(probes) %>%
                                  qt = stats::quantile(abs_diff, c(0.05, 0.95)), 
                                  q = c(0.05, 0.95))
            
-saveRDS(object = intra, file = paste0(out_dir, '/inter_probes.RDS'))
+saveRDS(object = intra, file = paste0(out_dir, '/', opt$name, '.RDS'))
 
 
