@@ -14,7 +14,7 @@ option_list <- list(
   make_option(c("-l", "--samplelist"), type="character", default=NULL,
               help = "list of samples", metavar="character"),
   make_option(c("-o", "--output"), type="character", default=NULL,
-              help = "output directory", metavar="character"))
+              help = "output directory", metavar="character"),
   make_option(c("-n", "--name"), type="character", default=NULL,
             help = "name", metavar="character"))
 
