@@ -19,15 +19,15 @@ option_list <- list(
 opt_parser <- OptionParser(option_list = option_list);
 opt <- parse_args(opt_parser);
 
-out_dir <- file.path(opt$output, opt$sample)
+out_dir <- paste0(opt$output, '/inter_sample')
 dir.create(out_dir, showWarnings = FALSE)
 
-
-sample_list <- read.csv('./data/sample_list',
+sample_list <- read.csv(opt$samplelist,
                header = FALSE,
                col.names = c('f_nanopore', 'f_epic', 'sample_name'))
 
 df <- dplyr::tibble()
+
 for (s in seq(1, nrow(sample_list))){
   sample <- sample_list[s,]
   tmp <- create_df(sample$f_nanopore, sample$f_epic)
@@ -40,13 +40,13 @@ for (s in seq(1, nrow(sample_list))){
 }
 
 intra <- df %>% group_by(probes) %>% 
-  mutate(mean_pb = mean(abs_diff)) %>% 
-  mutate(median_pb = median(abs_diff)) %>% 
-  mutate(median_cov_pb = median(cov))  %>% 
-  mutate(nsample = length(unique(sample_ID)))
+                dplyr::summarise(mean_pb = mean(abs_diff), 
+                                 median_pb = median(abs_diff), 
+                                 median_cov_pb = median(cov),
+                                 nsample = length(unique(sample_ID)),
+                                 qt = stats::quantile(abs_diff, c(0.05, 0.95)), 
+                                 q = c(0.05, 0.95))
            
-saveRDS(object = intra, file = paste0(out_dir, '/intra_probes.RDS'))
-
-
+saveRDS(object = intra, file = paste0(out_dir, '/inter_probes.RDS'))
 
 
